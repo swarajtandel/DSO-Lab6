@@ -2,22 +2,23 @@ pipeline {
     agent any
 
     environment {
-        registry = "swarajtandel/myapp-node"  // your Docker Hub username/image
-        registryCredential = 'dockerhub'      // matches Jenkins credentials ID
+        registry = "yourdockerhubusername/yourimagename" // Replace with your Docker Hub username/repo
+        registryCredential = 'dockerhub' // This must match the ID of your Jenkins Docker credentials
         dockerImage = ''
     }
 
     stages {
         stage('Cloning Git') {
             steps {
-                git 'https://github.com/swarajtandel/DSO-Lab6.git'
+                // Clone the main branch of your GitHub repo
+                git branch: 'main', url: 'https://github.com/swarajtandel/DSO-Lab6.git'
             }
         }
 
         stage('Building Docker Image') {
             steps {
                 script {
-                    // Build using Dockerfile inside 'myapp/' folder
+                    // Build Docker image using the 'myapp/' folder as context
                     dockerImage = docker.build registry, './myapp'
                 }
             }
@@ -26,7 +27,7 @@ pipeline {
         stage('Security Scan') {
             steps {
                 script {
-                    // Run Trivy scan on the built image
+                    // Trivy security scan for Docker image
                     sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image ${registry}'
                 }
             }
@@ -35,6 +36,7 @@ pipeline {
         stage('Deploying Image') {
             steps {
                 script {
+                    // Push Docker image to Docker Hub using Jenkins credentials
                     docker.withRegistry('', registryCredential) {
                         dockerImage.push()
                     }
@@ -44,6 +46,7 @@ pipeline {
 
         stage('Clean up') {
             steps {
+                // Remove local Docker image to free space
                 sh "docker rmi ${registry}"
             }
         }
@@ -51,6 +54,7 @@ pipeline {
 
     post {
         always {
+            // Clean workspace after every build
             cleanWs()
         }
     }
