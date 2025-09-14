@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        registry = "yourdockerhubusername/yourimagename" // Replace with your Docker Hub username/repo
-        registryCredential = 'dockerhub' // This must match the ID of your Jenkins Docker credentials
+        registry = "swarajtandel/myapp"      // Docker Hub username/repo
+        registryCredential = 'dockerhub'     // Must match the Jenkins credential ID
         dockerImage = ''
     }
 
@@ -18,8 +18,8 @@ pipeline {
         stage('Building Docker Image') {
             steps {
                 script {
-                    // Build Docker image from root directory
-                    dockerImage = docker.build registry
+                    // Build Docker image using root directory as context
+                    dockerImage = docker.build registry, '.'
                 }
             }
         }
